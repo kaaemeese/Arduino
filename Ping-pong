@@ -1,0 +1,105 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define ANCHO 128
+#define ALTO 64
+
+Adafruit_SSD1306 display(ANCHO, ALTO, &Wire, -1);
+
+// Joystick
+int pinX = A0;
+int pinY = A1;
+int pinSW = 2; // botón del joystick
+
+// Raqueta
+int raqX = ANCHO/2;
+int raqY = ALTO-5;
+int raqW = 20;
+int raqH = 3;
+
+// Pelota
+int bolaX, bolaY;
+int velX, velY;
+
+bool pausa = false;
+
+void setup() {
+  pinMode(pinSW, INPUT_PULLUP); // botón con resistencia interna
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for(;;);
+  }
+  iniciarJuego();
+}
+
+void loop() {
+  // Leer botón para pausa
+  if (digitalRead(pinSW) == LOW) {
+    pausa = !pausa;   // cambia estado al presionar
+    delay(300);       // anti-rebote
+  }
+
+  if (pausa) {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(30, 25);
+    display.println("PAUSA");
+    display.display();
+    return; // no avanza el juego
+  }
+
+  // Leer joystick
+  int valX = analogRead(pinX);
+
+  // Mover raqueta horizontal
+  if (valX < 400) raqX -= 3;
+  if (valX > 600) raqX += 3;
+
+  // Limitar raqueta dentro de pantalla
+  if (raqX < 0) raqX = 0;
+  if (raqX > ANCHO-raqW) raqX = ANCHO-raqW;
+
+  // Mover pelota
+  bolaX += velX;
+  bolaY += velY;
+
+  // Rebote en paredes
+  if (bolaX <= 0 || bolaX >= ANCHO-2) velX = -velX;
+  if (bolaY <= 0) velY = -velY;
+
+  // Colisión con raqueta
+  if (bolaY >= raqY-2 && bolaX >= raqX && bolaX <= raqX+raqW) {
+    velY = -velY; // rebote
+  }
+
+  // Game Over si la pelota pasa la raqueta
+  if (bolaY > ALTO) {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(20, 30);
+    display.println("GAME OVER");
+    display.display();
+    delay(2000);
+    iniciarJuego();
+  }
+
+  // Dibujar
+  display.clearDisplay();
+  display.fillRect(raqX, raqY, raqW, raqH, SSD1306_WHITE); // raqueta
+  display.fillCircle(bolaX, bolaY, 2, SSD1306_WHITE);      // pelota
+  display.display();
+
+  delay(30);
+}
+
+void iniciarJuego() {
+  // Posición inicial aleatoria
+  bolaX = random(10, ANCHO-10);
+  bolaY = random(10, ALTO/2);
+
+  // Dirección inicial aleatoria
+  velX = random(0, 2) == 0 ? 2 : -2;
+  velY = -2;
+}
