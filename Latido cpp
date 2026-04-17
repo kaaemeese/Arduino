@@ -1,0 +1,28 @@
+#include <Servo.h>
+
+Servo miServo;
+
+void setup() {
+  miServo.attach(9);  // conecta el servo al pin digital 9
+}
+
+void loop() {
+  int centro = 75;   // posición central
+  int amplitud = 30; // cuánto se mueve en cada latido
+
+  // Primer pulso (rápido)
+  miServo.write(centro + amplitud);
+  delay(100);  // subida rápida
+  miServo.write(centro);
+  delay(100);  // bajada rápida
+
+  // Segundo pulso (rápido, más corto)
+  miServo.write(centro + amplitud/2);
+  delay(80);
+  miServo.write(centro);
+  delay(120);
+
+  // Pausa entre latidos (simula ritmo cardíaco calmado)
+  delay(700);  // ajusta este valor para frecuencia cardíaca
+}
+
