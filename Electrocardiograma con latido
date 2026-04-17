@@ -1,0 +1,58 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define ANCHO 128
+#define ALTO 64
+
+Adafruit_SSD1306 display(ANCHO, ALTO, &Wire, -1);
+Servo miServo;
+
+int x = 0;  
+int y = ALTO/2;  
+unsigned long ultimoLatido = 0;
+int intervaloLatido = 1000; // 60 bpm
+
+void setup() {
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for(;;); // si falla, se queda aquí
+  }
+  display.clearDisplay();
+}
+
+void loop() {
+  display.clearDisplay();
+
+  // Línea base
+  display.drawLine(0, y, ANCHO, y, SSD1306_WHITE);
+
+  // ¿Toca latido?
+  if (millis() - ultimoLatido > intervaloLatido) {
+    ultimoLatido = millis();
+
+    // Pico en pantalla
+    display.drawLine(x, y, x+5, y-20, SSD1306_WHITE);
+    display.drawLine(x+5, y-20, x+10, y, SSD1306_WHITE);
+
+    // Activar servo solo durante el latido
+    miServo.attach(9);       // activa el servo
+    miServo.write(120);      // pequeño golpe
+    delay(100);
+    miServo.write(90);       // regresa al centro
+    delay(100);
+    miServo.detach();        // se apaga hasta el siguiente latido
+  } else {
+    // Línea plana
+    display.drawPixel(x, y, SSD1306_WHITE);
+  }
+
+  x++;
+  if (x >= ANCHO) {
+    x = 0;
+    display.clearDisplay();
+  }
+
+  display.display();
+  delay(20);
+}
