@@ -2,27 +2,25 @@
 
 Servo miServo;
 
+unsigned long ultimoLatido = 0;
+int intervaloLatido = 1000; // 60 bpm (1 latido por segundo)
+
 void setup() {
-  miServo.attach(9);  // conecta el servo al pin digital 9
+  // No activamos el servo aquí, solo cuando toque latido
 }
 
 void loop() {
-  int centro = 75;   // posición central
-  int amplitud = 30; // cuánto se mueve en cada latido
+  // ¿Toca latido?
+  if (millis() - ultimoLatido > intervaloLatido) {
+    ultimoLatido = millis();
 
-  // Primer pulso (rápido)
-  miServo.write(centro + amplitud);
-  delay(100);  // subida rápida
-  miServo.write(centro);
-  delay(100);  // bajada rápida
-
-  // Segundo pulso (rápido, más corto)
-  miServo.write(centro + amplitud/2);
-  delay(80);
-  miServo.write(centro);
-  delay(120);
-
-  // Pausa entre latidos (simula ritmo cardíaco calmado)
-  delay(700);  // ajusta este valor para frecuencia cardíaca
+    // Activar servo solo durante el latido
+    miServo.attach(9);       // activa el servo
+    miServo.write(120);      // pequeño golpe
+    delay(100);
+    miServo.write(90);       // regresa al centro
+    delay(100);
+    miServo.detach();        // se apaga hasta el siguiente latido
+  }
 }
 
