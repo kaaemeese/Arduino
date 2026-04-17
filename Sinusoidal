@@ -1,0 +1,25 @@
+#include <Servo.h>
+
+Servo miServo;
+
+void setup() {
+  miServo.attach(9);  // conecta el servo al pin digital 9
+}
+
+void loop() {
+  // Variables para la onda
+  int amplitud = 80;        // amplitud de la onda
+  int centro = 90;          // posición central del servo
+  float frecuencia = 0.25;  // frecuencia en Hz (ciclos por segundo)
+
+  // Tiempo actual en segundos
+  float t = millis() / 1000.0;
+
+  // Ángulo calculado con función seno
+  int angulo = centro + amplitud * sin(2 * PI * frecuencia * t);
+
+  // Mover el servo
+  miServo.write(angulo);
+
+  delay(10);  // menor delay para movimiento más suave
+}
